@@ -1,0 +1,11 @@
+{
+  "name": "upload",
+  "version": "0.0.1",
+  "description": "`npm install` dependencies. Initialize MySQL DB according to model in `/db/model.js`. Start with env variables below.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
