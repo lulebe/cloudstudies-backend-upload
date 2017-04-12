@@ -3,6 +3,7 @@ const express = require('express')
 const mw = require('./middleware')
 const uploadFile = require('./uploadFile')
 const getFile = require('./getFile')
+const getFileViaLink = require('./getFileViaLink')
 const deleteFile = require('./deleteFile')
 
 const app = express()
@@ -11,6 +12,7 @@ const app = express()
 app.use(mw.allowCORS)
 
 app.post('/folder/:folderId', uploadFile)
+app.get('/file/:jwt/:filename', getFileViaLink)
 app.get('/file/:fileId', getFile)
 app.delete('/file/:fileId', deleteFile)
 
