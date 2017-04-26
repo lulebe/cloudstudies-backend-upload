@@ -20,17 +20,23 @@ module.exports = (req, res) => {
   .then(ares => {
     const dbFile = ares.data
     const cipherKey = crypto.createHash('sha256').update(req.headers['x-store-auth'].split(' ').pop()+dbFile.salt).digest('base64')
-    const decipher = crypto.createDecipher('aes-256-cbc', cipherKey)
+    const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
     let position = 0
-    file.pipe(decipher).pipe(through(function (chunk, enc, cb) {
+    const reject = () => {
+      res.status(500).send('decryption error')
+    }
+    file.on('error', reject)
+    .pipe(decipher).on('error', reject)
+    .pipe(through(function (chunk, enc, cb) {
       if (position >= 512)
         this.push(chunk)
       else if (position + chunk.length >= 512)
         this.push(chunk.slice(512-position))
       position += chunk.length
       cb()
-    })).pipe(res)
+    })).on('error', reject)
+    .pipe(res)
   })
   .catch(e => {
     console.log(e)

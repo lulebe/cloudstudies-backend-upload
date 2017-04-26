@@ -6,22 +6,27 @@ const crypto = require('crypto')
 const through = require('through2')
 
 module.exports = (req, res) => {
-  console.log(req.params)
   Promise.fromNode(cb => jwt.verify(req.params.jwt, process.env.JWTFILES, cb))
   .then(data => {
     const cipherKey = data.auth
-    const decipher = crypto.createDecipher('aes-256-cbc', cipherKey)
+    const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, data.id.toString()))
     let position = 0
     res.set('Content-Type', 'application/octet-stream')
-    file.pipe(decipher).pipe(through(function (chunk, enc, cb) {
+    const reject = () => {
+      res.status(500).send('decryption error')
+    }
+    file.on('error', reject)
+    .pipe(decipher).on('error', reject)
+    .pipe(through(function (chunk, enc, cb) {
       if (position >= 512)
         this.push(chunk)
       else if (position + chunk.length >= 512)
         this.push(chunk.slice(512-position))
       position += chunk.length
       cb()
-    })).pipe(res)
+    })).on('error', reject)
+    .pipe(res)
   })
   .catch(e => {
     if (e.httpstatus)

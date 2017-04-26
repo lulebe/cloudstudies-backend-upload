@@ -15,4 +15,12 @@ const allowCORS = function(req, res, next) {
     next()
 }
 
-module.exports = {slowdown, allowCORS}
+const internalAuth = (req, res, next) => {
+  if (!req.headers.authorization)
+   return res.status(401).send('No authentication header.')
+  if (req.headers.authorization !== 'i '+process.env.INTERNAL_AUTH_KEY)
+    return res.status(401).send('Invalid authentication header.')
+  next()
+}
+
+module.exports = {slowdown, allowCORS, internalAuth}

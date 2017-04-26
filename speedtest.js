@@ -1,6 +1,6 @@
 // Nodejs encryption of buffers
 var crypto = require('crypto'),
-    algorithm = 'aes-256-ctr',
+    algorithm = 'aes-256-gcm',
     password = 'd6F3Efeq';
 
 var fs = require('fs');
