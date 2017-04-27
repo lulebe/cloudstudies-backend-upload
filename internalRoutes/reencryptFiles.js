@@ -28,7 +28,12 @@ function reencrypt (files, cb) {
   const newFile = fs.createWriteStream(newPath)
   const decipher = crypto.createDecipher('aes-256-gcm', oldKey)
   const cipher = crypto.createCipher('aes-256-gcm', newKey)
-  const reject = () => {} // just keep going
+  const reject = () => { // just keep going
+    fs.unlink(newPath, err => {})
+    fs.unlink(oldPath, err => {})
+    files.splice(0,1)
+    reencrypt(files, cb)
+  }
   oldFile.on('error', reject)
   .pipe(decipher).on('error', reject)
   .pipe(cipher).on('error', reject)

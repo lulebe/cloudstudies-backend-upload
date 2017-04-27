@@ -8,7 +8,7 @@ const multistream = require('combined-stream2')
 const multiparty = require('multiparty')
 const through = require('through2')
 
-const AppError = require('./error')
+const AppError = require('../error')
 
 module.exports = (req, res) => {
   if (!req.headers['x-store-auth'])
