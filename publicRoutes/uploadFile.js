@@ -70,7 +70,7 @@ function handleFile (req, part) {
     })
     .then(buf => {
       const startpad = bufToStream(buf)
-      const cipherKey = crypto.createHash('sha256').update(req.headers['x-store-auth'].split(' ').pop()+dbFile.salt).digest('base64')
+      const cipherKey = dbFile.key
       const cipher = crypto.createCipher('aes-256-gcm', cipherKey)
       const file = fs.createWriteStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
       startpad.on('error', reject)

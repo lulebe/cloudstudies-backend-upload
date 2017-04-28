@@ -19,7 +19,7 @@ module.exports = (req, res) => {
   })
   .then(ares => {
     const dbFile = ares.data
-    const cipherKey = crypto.createHash('sha256').update(req.headers['x-store-auth'].split(' ').pop()+dbFile.salt).digest('base64')
+    const cipherKey = dbFile.key
     const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
     let position = 0
