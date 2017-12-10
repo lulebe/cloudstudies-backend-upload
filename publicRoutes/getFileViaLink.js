@@ -1,5 +1,6 @@
 const Promise = require('bluebird')
 const jwt = require('jsonwebtoken')
+const mime = require('mime')
 const fs = require('fs')
 const joinPath = require('path').join
 const crypto = require('crypto')
@@ -12,7 +13,8 @@ module.exports = (req, res) => {
     const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, data.id.toString()))
     let position = 0
-    res.set('Content-Type', 'application/octet-stream')
+    const mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
+    res.set('Content-Type', mimetype)
     const reject = () => {
       res.status(500).send('decryption error')
     }
