@@ -40,7 +40,6 @@ module.exports = (req, res) => {
     }
   })
   form.on('close', () => {
-    console.log('close')
     res.status(201).send()
   })
   form.parse(req)
@@ -71,7 +70,7 @@ function handleFile (req, part) {
     .then(buf => {
       const startpad = bufToStream(buf)
       const cipherKey = dbFile.key
-      const cipher = crypto.createCipher('aes-256-gcm', cipherKey)
+      const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(cipherKey, 'base64'), Buffer.from(dbFile.iv, 'base64'))
       const file = fs.createWriteStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
       startpad.on('error', reject)
       const inputStream = multistream.create()
@@ -91,9 +90,10 @@ function handleFile (req, part) {
       .on('finish', () => {
         axios({
           method: 'POST',
-          url: process.env.API_URL + '/internal/filesize/'+dbFile.id,
+          url: process.env.API_URL + '/internal/fileuploaded/'+dbFile.id,
           headers: {Authorization: 'i '+process.env.INTERNAL_AUTH_KEY},
           data: {
+            authTag: cipher.getAuthTag().toString('base64'),
             fileSize: currentSize
           }
         })

@@ -9,14 +9,15 @@ const through = require('through2')
 module.exports = (req, res) => {
   Promise.fromNode(cb => jwt.verify(req.params.jwt, process.env.JWTFILES, cb))
   .then(data => {
-    const cipherKey = data.auth
-    const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
+    const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(data.auth, 'base64'), Buffer.from(data.iv, 'base64'))
+    decipher.setAuthTag(Buffer.from(data.authTag, 'base64'))
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, data.id.toString()))
     let position = 0
     const mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
     res.set('Content-Type', mimetype)
-    const reject = () => {
-      res.status(500).send('decryption error')
+    res.set('Content-Length', data.size)
+    const reject = e => {
+      console.log(e)
     }
     file.on('error', reject)
     .pipe(decipher).on('error', reject)

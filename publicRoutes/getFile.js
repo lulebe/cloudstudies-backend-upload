@@ -1,6 +1,7 @@
 const Promise = require('bluebird')
 const axios = require('axios')
 const fs = require('fs')
+const mime = require('mime')
 const joinPath = require('path').join
 const crypto = require('crypto')
 const through = require('through2')
@@ -19,12 +20,15 @@ module.exports = (req, res) => {
   })
   .then(ares => {
     const dbFile = ares.data
-    const cipherKey = dbFile.key
-    const decipher = crypto.createDecipher('aes-256-gcm', cipherKey)
+    res.set('Content-Length', dbFile.size)
+    const mimetype = mime.getType(dbFile.name.split('.').pop()) || 'application/octet-stream'
+    res.set('Content-Type', mimetype)
+    const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(dbFile.key, 'base64'), Buffer.from(dbFile.iv, 'base64'))
+    decipher.setAuthTag(Buffer.from(dbFile.authTag, 'base64'))
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
     let position = 0
-    const reject = () => {
-      res.status(500).send('decryption error')
+    const reject = e => {
+      console.log(e)
     }
     file.on('error', reject)
     .pipe(decipher).on('error', reject)
