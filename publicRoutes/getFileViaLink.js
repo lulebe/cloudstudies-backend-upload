@@ -14,6 +14,8 @@ module.exports = (req, res) => {
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, data.id.toString()))
     let position = 0
     const mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
+    if (req.query.download)
+      mimetype = 'application/octet-stream'
     res.set('Content-Type', mimetype)
     res.set('Content-Length', data.size-512)
     const reject = e => {
