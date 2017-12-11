@@ -20,7 +20,7 @@ module.exports = (req, res) => {
   })
   .then(ares => {
     const dbFile = ares.data
-    res.set('Content-Length', dbFile.size)
+    res.set('Content-Length', dbFile.size-512)
     const mimetype = mime.getType(dbFile.name.split('.').pop()) || 'application/octet-stream'
     res.set('Content-Type', mimetype)
     const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(dbFile.key, 'base64'), Buffer.from(dbFile.iv, 'base64'))

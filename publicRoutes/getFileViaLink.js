@@ -15,7 +15,7 @@ module.exports = (req, res) => {
     let position = 0
     const mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
     res.set('Content-Type', mimetype)
-    res.set('Content-Length', data.size)
+    res.set('Content-Length', data.size-512)
     const reject = e => {
       console.log(e)
     }
