@@ -13,7 +13,7 @@ module.exports = (req, res) => {
     decipher.setAuthTag(Buffer.from(data.authTag, 'base64'))
     const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, data.id.toString()))
     let position = 0
-    const mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
+    let mimetype = mime.getType(req.params.filename.split('.').pop()) || 'application/octet-stream'
     if (req.query.download)
       mimetype = 'application/octet-stream'
     res.set('Content-Type', mimetype)
