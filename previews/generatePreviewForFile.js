@@ -90,7 +90,7 @@ function encryptOutputsAndDeleteTmpFiles (dbFile, paths) {
   })
   //3. encrypt and copy files to final location
   .then(f => {
-    const files = f.sort((a, b) => parseInt(a.split(".").shift()) > parseInt(b.split(".").shift()))
+    const files = f.sort((a, b) => parseInt(a.split(".").shift()) - parseInt(b.split(".").shift()))
     fileCount = files.length
     return encryptFiles(dbFile, files, paths.outFolder, finalOutputPath, 0)
   })
