@@ -9,6 +9,7 @@ const multiparty = require('multiparty')
 const through = require('through2')
 
 const AppError = require('../error')
+const previewQueue = require('../previews/queue')
 
 module.exports = (req, res) => {
   if (!req.headers['x-store-auth'])
@@ -88,16 +89,25 @@ function handleFile (req, part) {
       })).on('error', reject)
       .pipe(file).on('error', reject)
       .on('finish', () => {
+        const fileAuthTag = cipher.getAuthTag().toString('base64')
         axios({
           method: 'POST',
           url: process.env.API_URL + '/internal/fileuploaded/'+dbFile.id,
           headers: {Authorization: 'i '+process.env.INTERNAL_AUTH_KEY},
           data: {
-            authTag: cipher.getAuthTag().toString('base64'),
+            authTag: fileAuthTag,
             fileSize: currentSize
           }
         })
         .catch(e => {console.log(e)})
+        if (fileSize <= process.env.MAX_SIZE_TO_PREVIEW)
+          previewQueue.addFile({
+            id: dbFile.id,
+            key: dbFile.key,
+            authTag: fileAuthTag,
+            iv: dbFile.iv,
+            name: dbFile.name
+          })
         resolve()
       })
     })

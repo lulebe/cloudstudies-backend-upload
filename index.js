@@ -5,6 +5,7 @@ const mw = require('./middleware')
 const uploadFile = require('./publicRoutes/uploadFile')
 const getFile = require('./publicRoutes/getFile')
 const getFileViaLink = require('./publicRoutes/getFileViaLink')
+const getPreviewViaLink = require('./publicRoutes/getPreviewViaLink')
 const deleteFiles = require('./internalRoutes/deleteFiles')
 const reencryptFiles = require('./internalRoutes/reencryptFiles')
 
@@ -17,6 +18,7 @@ app.use(mw.allowCORS)
 app.post('/folder/:folderId', uploadFile)
 app.get('/file/:jwt/:filename', getFileViaLink)
 app.get('/file/:fileId', getFile)
+app.get('/file/preview/:filename/:jwt/:previewNum', getPreviewViaLink)
 
 //internal
 app.post('/internal/files/reencrypt', [bodyParser.json(), mw.internalAuth], reencryptFiles)

@@ -9,6 +9,7 @@
 - `INTERNAL_AUTH_KEY` authentication key for communating with other servers
 - `UPLOAD_PATH` path to folder for uploaded files
 - `API_URL` path to main app api
+- `MAX_SIZE_TO_PREVIEW` maximum filesize for which to generate preview
 
 # HTTP Routes
 

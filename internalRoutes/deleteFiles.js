@@ -1,6 +1,7 @@
 const Promise = require('bluebird')
 const fs = require('fs')
 const joinPath = require('path').join
+const rimraf = require('rimraf')
 
 module.exports = (req, res) => {
   if (!req.body.files)
@@ -16,7 +17,9 @@ function deleteFiles (files, cb) {
     return
   }
   fs.unlink(joinPath(process.env.UPLOAD_PATH, files[0].toString()), err => { //ignore errors
-    files.splice(0,1)
-    deleteFiles(files, cb)
+    rimraf(joinPath(process.env.UPLOAD_PATH, 'previews', files[0].toString()), {disableGlob: true}, err => {
+      files.splice(0,1)
+      deleteFiles(files, cb)
+    })
   })
 }
