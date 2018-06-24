@@ -100,7 +100,7 @@ function handleFile (req, part) {
           }
         })
         .catch(e => {console.log(e)})
-        if (fileSize <= process.env.MAX_SIZE_TO_PREVIEW)
+        if (currentSize <= parseInt(process.env.MAX_SIZE_TO_PREVIEW))
           previewQueue.addFile({
             id: dbFile.id,
             key: dbFile.key,

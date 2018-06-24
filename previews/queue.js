@@ -11,7 +11,8 @@ function startWork () {
   currentlyWorking = true
   const currentFile = enqueuedFiles.shift()
   generatePreviewForFile(currentFile)
-  startWork()
+  .then(startWork)
+  .catch(console.log)
 }
 
 module.exports = {

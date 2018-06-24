@@ -21,7 +21,7 @@ module.exports = function (dbFile) {
   const fileExtension = fileName.split('.').pop().toLowerCase()
   let paths = null
   if (allExtensions.indexOf(fileExtension) > -1)
-    decryptFile(dbFile, fileExtension)
+    return decryptFile(dbFile, fileExtension)
     .then(p => {
       paths = p
       if (imageExtensions.indexOf(fileExtension) > -1)
@@ -45,13 +45,14 @@ module.exports = function (dbFile) {
     .catch(e => {
       console.log(e)
     })
+  return Promise.resolve()
 }
 
 function decryptFile (dbFile, extension) {
   const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(dbFile.key, 'base64'), Buffer.from(dbFile.iv, 'base64'))
   decipher.setAuthTag(Buffer.from(dbFile.authTag, 'base64'))
   const file = fs.createReadStream(joinPath(process.env.UPLOAD_PATH, dbFile.id.toString()))
-  const tmpOutputPath = joinPath(process.env.UPLOAD_PATH, 'previews', 'tmp', dbFile.id.toString()) + '.' + fileExtension
+  const tmpOutputPath = joinPath(process.env.UPLOAD_PATH, 'previews', 'tmp', dbFile.id.toString()) + '.' + extension
   const tmpOutputFile = fs.createWriteStream(tmpOutputPath)
   let position = 0
   return new Promise((resolve, reject) => {
@@ -88,7 +89,8 @@ function encryptOutputsAndDeleteTmpFiles (dbFile, paths) {
     return readdir(paths.outFolder)
   })
   //3. encrypt and copy files to final location
-  .then(files => {
+  .then(f => {
+    const files = f.sort((a, b) => parseInt(a.split(".").shift()) > parseInt(b.split(".").shift()))
     fileCount = files.length
     return encryptFiles(dbFile, files, paths.outFolder, finalOutputPath, 0)
   })
@@ -138,7 +140,8 @@ function processImage (dbFile, paths) {
       'convert -resize "640x640>" -quality 60 "'
       + paths.filePath
       + '" "'
-      + joinPath(paths.outFolder, 'out.jpg'),
+      + joinPath(paths.outFolder, '0.jpg')
+      + '"',
       (err, stdout, stderr) => {
         if (err)
           reject(err)
@@ -152,10 +155,30 @@ function processImage (dbFile, paths) {
 function processPdf (dbFile, paths) {
   return new Promise((resolve, reject) => {
     exec(
+      "pdfinfo " + paths.filePath + " | grep Pages | awk '{print $2}'",
+      (err, stdout, stderr) => {
+        let pageCount = 0
+        try {
+          pageCount = parseInt(stdout.trim())
+        } catch(e) {
+          return reject(e)
+        }
+        processPdfPage(dbFile, paths, 0, pageCount)
+        .then(resolve)
+        .catch(reject)
+      }
+    )
+  })
+}
+
+function processPdfPage (dbFile, paths, index, pageCount) {
+  return new Promise((resolve, reject) => {
+    exec(
       'convert -density 400 -background white -alpha flatten -resize 20% -quality 55 "'
       + paths.filePath
-      + '" "'
-      + joinPath(paths.outFolder, 'out.jpg'),
+      + '"[' + index + '] "'
+      + joinPath(paths.outFolder, index + '.jpg')
+      + '"',
       (err, stdout, stderr) => {
         if (err)
           reject(err)
@@ -163,5 +186,11 @@ function processPdf (dbFile, paths) {
           resolve()
       }
     )
+  })
+  .then(() => {
+    const nextIndex = index + 1
+    if (nextIndex < pageCount)
+      return processPdfPage(dbFile, paths, nextIndex, pageCount)
+    return Promise.resolve()
   })
 }

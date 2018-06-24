@@ -5,7 +5,7 @@ const joinPath = require('path').join
 const crypto = require('crypto')
 const through = require('through2')
 
-const getMimeTypeForExtension = require('../mimetypes')
+const getMimeTypeForExtension = require('../previews/mimetypes')
 
 module.exports = (req, res) => {
   Promise.fromNode(cb => jwt.verify(req.params.jwt, process.env.JWTFILES, cb))
